@@ -1,0 +1,313 @@
+
+<h2 class="sr-only">翻译决策地图交互式教学工具：包含理论简介、三区示例演示和五道测试题</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.app{font-family:var(--font-sans);color:var(--color-text-primary);max-width:680px}
+.phase-bar{display:flex;gap:4px;margin-bottom:1.5rem}
+.phase-dot{height:4px;flex:1;border-radius:2px;background:var(--color-border-tertiary);transition:background .3s}
+.phase-dot.active{background:var(--color-text-info)}
+.phase-dot.done{background:var(--color-text-success)}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
+.zone-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--border-radius-md);font-size:13px;font-weight:500}
+.zone-green .zone-badge{background:#EAF3DE;color:#3B6D11}
+.zone-yellow .zone-badge{background:#FAEEDA;color:#854F0B}
+.zone-red .zone-badge{background:#FCEBEB;color:#A32D2D}
+@media(prefers-color-scheme:dark){
+.zone-green .zone-badge{background:#27500A;color:#C0DD97}
+.zone-yellow .zone-badge{background:#633806;color:#FAC775}
+.zone-red .zone-badge{background:#791F1F;color:#F7C1C1}
+}
+.zone-card{border-left:3px solid;border-radius:0;padding:1rem 1.25rem;margin-bottom:12px;background:var(--color-background-secondary)}
+.zone-green .zone-card,.zone-green.zone-card{border-left-color:#639922}
+.zone-yellow .zone-card,.zone-yellow.zone-card{border-left-color:#BA7517}
+.zone-red .zone-card,.zone-red.zone-card{border-left-color:#E24B4A}
+.zone-title{font-size:15px;font-weight:500;margin-bottom:6px}
+.zone-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.6}
+.demo-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;margin:12px 0}
+.demo-source{font-size:14px;line-height:1.8;margin-bottom:8px}
+.demo-source mark{padding:2px 4px;border-radius:3px;cursor:pointer;transition:all .2s}
+.demo-source mark.g{background:#EAF3DE;color:#3B6D11}
+.demo-source mark.y{background:#FAEEDA;color:#854F0B}
+.demo-source mark.r{background:#FCEBEB;color:#A32D2D}
+@media(prefers-color-scheme:dark){
+.demo-source mark.g{background:#27500A;color:#C0DD97}
+.demo-source mark.y{background:#27500A;color:#C0DD97}
+.demo-source mark.r{background:#791F1F;color:#F7C1C1}
+}
+.demo-source mark:hover{filter:brightness(1.1);transform:scale(1.02)}
+.demo-source mark.selected{outline:2px solid var(--color-text-info);outline-offset:1px}
+.tooltip{font-size:12px;line-height:1.6;color:var(--color-text-secondary);padding:10px 12px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);margin-top:8px;display:none}
+.tooltip.show{display:block}
+.tooltip .tt-zone{font-weight:500;font-size:13px;margin-bottom:4px}
+.tooltip .tt-zone.tz-g{color:#639922}
+.tooltip .tt-zone.tz-y{color:#BA7517}
+.tooltip .tt-zone.tz-r{color:#E24B4A}
+.quiz-q{font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.6}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:13px;line-height:1.5;cursor:pointer;transition:all .2s;background:var(--color-background-primary);text-align:left}
+.quiz-opt:hover:not(.locked){background:var(--color-background-secondary);border-color:var(--color-border-secondary)}
+.quiz-opt.correct{border-color:#639922;background:#EAF3DE;color:#3B6D11}
+.quiz-opt.wrong{border-color:#E24B4A;background:#FCEBEB;color:#A32D2D}
+@media(prefers-color-scheme:dark){
+.quiz-opt.correct{background:#27500A;color:#C0DD97;border-color:#639922}
+.quiz-opt.wrong{background:#791F1F;color:#F7C1C1;border-color:#E24B4A}
+}
+.quiz-explain{font-size:12px;color:var(--color-text-secondary);line-height:1.6;margin-top:10px;padding:10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);display:none}
+.quiz-explain.show{display:block}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+.score-big{font-size:36px;font-weight:500;text-align:center;margin:1rem 0}
+.score-label{font-size:14px;color:var(--color-text-secondary);text-align:center}
+.result-item{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.result-item:last-child{border-bottom:none}
+.result-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.result-icon.ok{background:#EAF3DE;color:#3B6D11}
+.result-icon.no{background:#FCEBEB;color:#A32D2D}
+@media(prefers-color-scheme:dark){
+.result-icon.ok{background:#27500A;color:#C0DD97}
+.result-icon.no{background:#791F1F;color:#F7C1C1}
+}
+.hero-icon{font-size:28px;margin-bottom:12px;display:block}
+.section-head{font-size:16px;font-weight:500;margin-bottom:6px}
+.section-sub{font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:1rem}
+.example-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--color-background-info);color:var(--color-text-info);font-size:11px;font-weight:500;margin-right:6px}
+.quiz-num{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:var(--color-background-secondary);color:var(--color-text-secondary);font-size:11px;font-weight:500;margin-right:8px}
+.hidden{display:none!important}
+</style>
+
+<div class="app" id="app">
+  <div class="phase-bar" id="pbar"></div>
+  <div id="content"></div>
+  <div class="nav-row" id="nav"></div>
+</div>
+
+<script>
+const phases = [
+  {id:'intro', label:'任务简报'},
+  {id:'zones', label:'三区总览'},
+  {id:'demo1', label:'示例 1'},
+  {id:'demo2', label:'示例 2'},
+  {id:'demo3', label:'示例 3'},
+  {id:'quiz', label:'实战测试'},
+  {id:'result', label:'战报'}
+];
+let cur = 0;
+let answers = [null,null,null,null,null];
+const correct = [1,0,2,1,1];
+const quizData = [
+  {q:'「推动构建人类命运共同体」中的「人类命运共同体」属于哪个决策区？',
+   opts:['绿区 — AI可独立处理','黄区 — 人机协同','红区 — 人工主导'],
+   exp:'这是政治术语，有标准译法 сообщество единой судьбы человечества，但AI可能在 единая / общая 之间不稳定，需要人工核查术语一致性。'},
+  {q:'「持久和平、普遍安全、共同繁荣」属于哪个决策区？',
+   opts:['绿区 — AI可独立处理','黄区 — 人机协同','红区 — 人工主导'],
+   exp:'程式化外交套语，有现成标准译法（долгосрочный мир, всеобщая безопасность, совместное процветание），AI基本能正确处理。'},
+  {q:'「同舟共济」属于哪个决策区？',
+   opts:['绿区 — AI可独立处理','黄区 — 人机协同','红区 — 人工主导'],
+   exp:'成语典故，AI可能直译为 плывя в одной лодке，丧失外交文体庄重感。需人工意译为 помогая друг другу в общем деле。'},
+  {q:'以下哪句话最准确地描述了「红区」难的原因？',
+   opts:['因为俄语表达太复杂，AI生成的语法有错误','因为AI读不透中文原文的深层文化含义，目标语翻译无从谈起','因为这类内容没有标准答案，所以AI不知道选哪个'],
+   exp:'红区之所以红，核心在于源语理解的深度，而不仅仅是目标语的难度。AI读不懂中文原文的深层含义，自然译不出好的目标语。'},
+  {q:'作为翻译决策地图的使用者，你的角色定位是什么？',
+   opts:['AI翻译的纠错员 — 找出AI的错误并修正','翻译项目的决策指挥官 — 判断哪些交给AI、哪些自己主导','AI翻译的使用者 — 用AI提高翻译速度'],
+   exp:'你不是给AI打补丁的校对员，而是整个翻译项目的总指挥——决定什么交给AI、什么自己上。'}
+];
+let curQ = 0;
+
+function render(){
+  const pbar = document.getElementById('pbar');
+  pbar.innerHTML = phases.map((_,i) =>
+    `<div class="phase-dot ${i<cur?'done':''} ${i===cur?'active':''}"></div>`
+  ).join('');
+  const c = document.getElementById('content');
+  const n = document.getElementById('nav');
+  if(cur===0) renderIntro(c,n);
+  else if(cur===1) renderZones(c,n);
+  else if(cur>=2 && cur<=4) renderDemo(c,n,cur-2);
+  else if(cur===5) renderQuiz(c,n);
+  else renderResult(c,n);
+}
+
+function renderIntro(c,n){
+  c.innerHTML=`
+    <div class="card" style="text-align:center;padding:2rem 1.5rem">
+      <i class="ti ti-radar" style="font-size:36px;color:var(--color-text-info);margin-bottom:12px;display:block" aria-hidden="true"></i>
+      <div class="section-head" style="font-size:18px;margin-bottom:8px">翻译指挥官作战室</div>
+      <div class="section-sub" style="margin-bottom:1.5rem">在人机协同时代，翻译工作不再是「一个人从头译到尾」。<br>你的新身份：翻译项目的决策指挥官。</div>
+      <div style="text-align:left;line-height:1.8;font-size:14px;color:var(--color-text-secondary)">
+        想象你是一位战场指挥官，面前有三种部队：<br><br>
+        有的任务可以<strong style="color:#639922">放心交给AI自动完成</strong>——就像派无人机去执行常规巡逻；<br><br>
+        有的任务需要<strong style="color:#BA7517">你和AI配合</strong>——就像你在指挥室用雷达引导飞行员；<br><br>
+        有的任务<strong style="color:#E24B4A">必须你亲自上阵</strong>——因为AI根本「看不懂」战场上发生了什么。<br><br>
+        接下来，我们用「翻译决策地图」学会分辨这三种任务。
+      </div>
+    </div>`;
+  n.innerHTML=`<span></span><button onclick="go(1)">开始探索 <i class="ti ti-arrow-right" aria-hidden="true"></i></button>`;
+}
+
+function renderZones(c,n){
+  c.innerHTML=`
+    <div class="section-head"><i class="ti ti-map-2" style="font-size:18px;vertical-align:-2px;margin-right:6px;color:var(--color-text-info)" aria-hidden="true"></i>三色决策区总览</div>
+    <div class="section-sub">每段待译文本，都可以按「AI能不能搞定」划入以下三个区：</div>
+    <div class="zone-green">
+      <div class="zone-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span class="zone-badge"><i class="ti ti-circle-check" aria-hidden="true"></i> 绿区</span>
+          <span style="font-size:13px;color:var(--color-text-secondary)">AI可独立处理</span>
+        </div>
+        <div class="zone-desc">程式化外交套语，如「持久和平」「普遍安全」「开放包容」。有固定标准译法，AI查得到、译得对，你只需最终核对。<br><strong>类比</strong>：GPS导航走高速——路线固定，跟着走就行。</div>
+      </div>
+    </div>
+    <div class="zone-yellow">
+      <div class="zone-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span class="zone-badge"><i class="ti ti-alert-triangle" aria-hidden="true"></i> 黄区</span>
+          <span style="font-size:13px;color:var(--color-text-secondary)">人机协同</span>
+        </div>
+        <div class="zone-desc">政治术语和规范表达，如「人类命运共同体」「新型国际关系」。AI能给出大致译法，但术语一致性可能不稳定，需人工对照官方标准核查。<br><strong>类比</strong>：GPS导航走山路——大方向对，但拐弯处你得自己判断。</div>
+      </div>
+    </div>
+    <div class="zone-red">
+      <div class="zone-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span class="zone-badge"><i class="ti ti-alert-octagon" aria-hidden="true"></i> 红区</span>
+          <span style="font-size:13px;color:var(--color-text-secondary)">人工主导</span>
+        </div>
+        <div class="zone-desc">涉及文化意象、成语典故或深层源语理解的内容，如「同舟共济」「与古为新」。<br><strong>红区之所以红，不是因为俄语难写，而是AI读不透中文原文的深层含义。</strong>源语都没理解，目标语翻译无从谈起。<br><strong>类比</strong>：GPS压根不知道这条路存在——你得自己开路。</div>
+      </div>
+    </div>`;
+  n.innerHTML=`<button onclick="go(0)"><i class="ti ti-arrow-left" aria-hidden="true"></i> 返回</button><button onclick="go(2)">看示例 <i class="ti ti-arrow-right" aria-hidden="true"></i></button>`;
+}
+
+const demos = [
+  {
+    title:'外交演讲片段',
+    source:'我们应该推动构建<mark class="y" data-zone="y" data-i="0">人类命运共同体</mark>，实现<mark class="g" data-zone="g" data-i="1">持久和平</mark>、<mark class="g" data-zone="g" data-i="2">普遍安全</mark>、<mark class="g" data-zone="g" data-i="3">共同繁荣</mark>。',
+    tips:[
+      {zone:'y',label:'黄区 — 人机协同',text:'「人类命运共同体」是核心政治术语。AI可能给出 сообщество единой судьбы 或 сообщество общей судьбы，两者都见过，但官方标准用 единой。你需要核查术语表，确认一致性。'},
+      {zone:'g',label:'绿区 — AI可独立处理',text:'「持久和平」= долгосрочный мир，标准外交套语，AI几乎不会出错。'},
+      {zone:'g',label:'绿区 — AI可独立处理',text:'「普遍安全」= всеобщая безопасность，同样是固定搭配。'},
+      {zone:'g',label:'绿区 — AI可独立处理',text:'「共同繁荣」= совместное процветание，套语无悬念。'}
+    ]
+  },
+  {
+    title:'包含成语的外交表述',
+    source:'面对挑战，各国应<mark class="r" data-zone="r" data-i="0">同舟共济</mark>，携手构建<mark class="y" data-zone="y" data-i="1">新型国际关系</mark>，实现<mark class="g" data-zone="g" data-i="2">开放包容</mark>的世界。',
+    tips:[
+      {zone:'r',label:'红区 — 人工主导',text:'「同舟共济」是成语。AI可能直译为 плывя в одной лодке（坐在同一条船上），听起来像童话故事，完全丧失外交庄重感。你需要意译为 помогая друг другу в общем деле（在共同事业中互相帮助）。'},
+      {zone:'y',label:'黄区 — 人机协同',text:'「新型国际关系」是政治术语。AI大致知道 международные отношения нового типа，但需要核查是否与本文其他地方术语统一。'},
+      {zone:'g',label:'绿区 — AI可独立处理',text:'「开放包容」= открытость и инклюзивность，标准表达，AI能正确处理。'}
+    ]
+  },
+  {
+    title:'文化意象密集段落',
+    source:'中华文明历来倡导<mark class="r" data-zone="r" data-i="0">与古为新</mark>，坚持<mark class="r" data-zone="r" data-i="1">和而不同</mark>，追求<mark class="g" data-zone="g" data-i="2">合作共赢</mark>的理念。',
+    tips:[
+      {zone:'r',label:'红区 — 人工主导',text:'「与古为新」出自书法理论，意思是从传统中汲取灵感、创造新事物。AI几乎一定会逐字硬译或直接跳过。你需要深入理解源语含义后，找到恰当的俄语表达方式。'},
+      {zone:'r',label:'红区 — 人工主导',text:'「和而不同」出自《论语》，表达的是保持差异性前提下的和谐共处。AI可能译成 гармония в разнообразии，但是否准确传达了儒家原意，需要你来判断。'},
+      {zone:'g',label:'绿区 — AI可独立处理',text:'「合作共赢」= взаимовыгодное сотрудничество，常见外交套语，AI能准确处理。'}
+    ]
+  }
+];
+
+function renderDemo(c,n,idx){
+  const d = demos[idx];
+  c.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span class="example-num">${idx+1}</span>
+      <span class="section-head" style="margin:0">${d.title}</span>
+    </div>
+    <div class="section-sub">点击高亮词语，查看它属于哪个决策区以及原因</div>
+    <div class="demo-box">
+      <div class="demo-source" id="demo-src">${d.source}</div>
+      <div class="tooltip" id="demo-tip"></div>
+    </div>`;
+  document.querySelectorAll('#demo-src mark').forEach(m=>{
+    m.addEventListener('click',()=>{
+      document.querySelectorAll('#demo-src mark').forEach(x=>x.classList.remove('selected'));
+      m.classList.add('selected');
+      const i = parseInt(m.dataset.i);
+      const t = d.tips[i];
+      const tip = document.getElementById('demo-tip');
+      const zcls = t.zone==='g'?'tz-g':t.zone==='y'?'tz-y':'tz-r';
+      tip.innerHTML=`<div class="tt-zone ${zcls}">${t.label}</div>${t.text}`;
+      tip.classList.add('show');
+    });
+  });
+  const prev = cur>2 ? cur-1 : 1;
+  const nextLabel = cur<4 ? `示例 ${idx+2}` : '进入测试';
+  n.innerHTML=`<button onclick="go(${prev})"><i class="ti ti-arrow-left" aria-hidden="true"></i> 返回</button><button onclick="go(${cur+1})">${nextLabel} <i class="ti ti-arrow-right" aria-hidden="true"></i></button>`;
+}
+
+function renderQuiz(c,n){
+  const q = quizData[curQ];
+  c.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:4px">
+        ${quizData.map((_,i)=>`<span class="quiz-num" style="${i===curQ?'background:var(--color-background-info);color:var(--color-text-info)':answers[i]!==null?(answers[i]===correct[i]?'background:#EAF3DE;color:#3B6D11':'background:#FCEBEB;color:#A32D2D'):''}">${i+1}</span>`).join('')}
+      </div>
+      <span style="font-size:12px;color:var(--color-text-secondary)">${curQ+1} / 5</span>
+    </div>
+    <div class="card">
+      <div class="quiz-q">${q.q}</div>
+      <div class="quiz-opts" id="qopts">
+        ${q.opts.map((o,i)=>{
+          let cls='quiz-opt';
+          if(answers[curQ]!==null){
+            cls+=' locked';
+            if(i===correct[curQ]) cls+=' correct';
+            else if(i===answers[curQ] && i!==correct[curQ]) cls+=' wrong';
+          }
+          return `<button class="${cls}" ${answers[curQ]===null?`onclick="pickAnswer(${i})"`:''} ${answers[curQ]!==null?'disabled':''}>${String.fromCharCode(65+i)}. ${o}</button>`;
+        }).join('')}
+      </div>
+      <div class="quiz-explain ${answers[curQ]!==null?'show':''}" id="qexp">${q.exp}</div>
+    </div>`;
+  const canPrev = curQ>0;
+  const canNext = curQ<4 && answers[curQ]!==null;
+  const showResult = curQ===4 && answers[curQ]!==null;
+  let navHtml = canPrev?`<button onclick="prevQ()"><i class="ti ti-arrow-left" aria-hidden="true"></i> 上一题</button>`:`<button onclick="go(4)"><i class="ti ti-arrow-left" aria-hidden="true"></i> 返回示例</button>`;
+  if(showResult) navHtml+=`<button onclick="go(6)">查看战报 <i class="ti ti-arrow-right" aria-hidden="true"></i></button>`;
+  else if(canNext) navHtml+=`<button onclick="nextQ()">下一题 <i class="ti ti-arrow-right" aria-hidden="true"></i></button>`;
+  else navHtml+=`<span></span>`;
+  n.innerHTML=navHtml;
+}
+
+function pickAnswer(i){
+  answers[curQ]=i;
+  renderQuiz(document.getElementById('content'),document.getElementById('nav'));
+}
+function nextQ(){curQ=Math.min(4,curQ+1);render();}
+function prevQ(){curQ=Math.max(0,curQ-1);render();}
+
+function renderResult(c,n){
+  const sc = answers.reduce((s,a,i)=>s+(a===correct[i]?1:0),0);
+  const pass = sc>=4;
+  c.innerHTML=`
+    <div class="card" style="text-align:center;padding:2rem">
+      <i class="ti ti-${pass?'trophy':'refresh'}" style="font-size:32px;color:${pass?'var(--color-text-success)':'var(--color-text-warning)'};display:block;margin-bottom:8px" aria-hidden="true"></i>
+      <div class="score-big">${sc} / 5</div>
+      <div class="score-label">${pass?'通关成功！你已具备指挥官的基本判断力。':'还差一点，再回顾一下三区的区别吧。'}</div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:500;margin-bottom:10px">逐题回顾</div>
+      ${quizData.map((q,i)=>{
+        const ok = answers[i]===correct[i];
+        return `<div class="result-item">
+          <div class="result-icon ${ok?'ok':'no'}"><i class="ti ti-${ok?'check':'x'}" aria-hidden="true"></i></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${q.q}</div>
+            ${!ok?`<div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">正确答案：${String.fromCharCode(65+correct[i])}. ${q.opts[correct[i]]}</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  n.innerHTML=`<button onclick="restart()"><i class="ti ti-arrow-left" aria-hidden="true"></i> 重新开始</button><span></span>`;
+}
+
+function restart(){
+  answers=[null,null,null,null,null];
+  curQ=0;cur=0;render();
+}
+function go(p){cur=p;render();}
+
+render();
+</script>
